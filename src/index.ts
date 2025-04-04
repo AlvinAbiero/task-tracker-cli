@@ -88,6 +88,105 @@ async function processCommand() {
           console.error(`Failed to delete task: ${deleteResult.message}`);
         }
         break;
+
+      case "mark-in-progress":
+        if (!args[1]) {
+          console.error("Error: Task ID is required");
+          process.exit(1);
+        }
+
+        const inProgressId = parseInt(args[1], 10);
+
+        if (isNaN(inProgressId)) {
+          console.error("Error: Task ID must be a number");
+          process.exit(1);
+        }
+
+        const inProgressResult = TaskService.updateTaskStatus(
+          inProgressId,
+          TaskStatus.IN_PROGRESS
+        );
+
+        if (inProgressResult.success) {
+          console.log(`Task ${inProgressId} marked as in-progress`);
+        } else {
+          console.error(
+            `Failed to update task status: ${inProgressResult.message}`
+          );
+        }
+        break;
+
+      case "mark-done":
+        if (!args[1]) {
+          console.error("Error: Task ID is required");
+          process.exit(1);
+        }
+
+        const doneId = parseInt(args[1], 10);
+
+        if (isNaN(doneId)) {
+          console.error("Error: Task ID must be a number");
+          process.exit(1);
+        }
+
+        const doneResult = TaskService.updateTaskStatus(
+          doneId,
+          TaskStatus.DONE
+        );
+
+        if (doneResult.success) {
+          console.log(`Task ${doneId} marked as done`);
+        } else {
+          console.error(`Failed to update task status: ${doneResult.message}`);
+        }
+        break;
+
+      case "list":
+        const filter = args[1];
+        let tasks;
+
+        switch (filter) {
+          case "todo":
+            tasks = TaskService.listTasks(TaskStatus.TODO);
+            console.log("Tasks To Do:");
+            break;
+
+          case "in-progress":
+            tasks = TaskService.listTasks(TaskStatus.IN_PROGRESS);
+            console.log("Tasks In Progress:");
+            break;
+
+          case "done":
+            tasks = TaskService.listTasks(TaskStatus.DONE);
+            console.log("Taks Done:");
+            break;
+
+          default:
+            tasks = TaskService.listTasks();
+            console.log("All Tasks:");
+            break;
+        }
+
+        displayTasks(tasks);
+        break;
+
+      default:
+        console.log(`
+Task Tracker CLI - Help
+Usage:
+  task-cli add "Task description"
+  task-cli update <id> "New task description"
+  task-cli delete <id>
+  task-cli mark-in-progress <id>
+  task-cli mark-done <id>
+  task-cli list [todo|in-progress|done]
+        `);
     }
-  } catch (error) {}
+  } catch (error) {
+    console.error(`Error: ${error}`);
+    process.exit(1);
+  }
 }
+
+// Execute command
+processCommand();
